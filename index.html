@@ -76,6 +76,14 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 .confetti{position:fixed;top:-30px;pointer-events:none;animation:fall linear forwards;z-index:9}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 #scroll5{overflow-y:auto;justify-content:flex-start;padding-top:40px;padding-bottom:40px}
+.ghost{background:transparent;color:var(--rasp);box-shadow:none;text-decoration:underline;font-size:16px;padding:8px 14px}
+.ghost:active{transform:none;box-shadow:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:460px}
+.chips button{background:#fff;color:var(--ink);box-shadow:0 4px 0 #d9a3b7;font-size:15px;padding:10px 16px;min-height:44px}
+.chips button.sel{background:var(--rasp);color:#fff;box-shadow:0 4px 0 var(--rasp-d)}
+textarea{font:16px Fredoka,sans-serif;width:min(440px,92vw);min-height:96px;border:2px solid #f3a5c2;border-radius:16px;padding:12px;resize:vertical;color:var(--ink);user-select:text}
+textarea:focus-visible{outline:3px solid var(--sun);border-color:var(--rasp)}
+#s-msg{overflow-y:auto}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 @media(max-height:640px){.char{width:min(130px,34vw)}h1{font-size:30px}}
 </style>
@@ -94,6 +102,18 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
   <h1>Babiii, you have one new message</h1>
   <p class="sub">From a very sorry husband. Sound on is not required. Forgiveness is optional (but recommended).</p>
   <button id="open">Open it</button>
+  <button class="ghost" id="toMsg0">Already played? Send him a message</button>
+</section>
+
+<!-- message him -->
+<section class="scene" id="s-msg">
+  <h1>Tell him something</h1>
+  <p class="sub">It goes straight to his phone.</p>
+  <div class="chips" id="chips"></div>
+  <textarea id="msgText" maxlength="500" placeholder="Type anything…"></textarea>
+  <button id="sendMsg">Send to him</button>
+  <p class="sub" id="msgStatus" aria-live="polite"></p>
+  <button class="ghost" id="msgBack">Back</button>
 </section>
 
 <!-- 1: the apology -->
@@ -143,6 +163,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
   <p class="sub">Thank you for the gift, babiii. Not the game, the thought behind it. Here are your apology coupons. Tap one to redeem it, then show me.</p>
   <div class="coupons" id="coupons"></div>
   <p class="sign">I love you more than any game on any platform. ♥</p>
+  <button id="toMsg5">Send him a message</button>
   <button id="again" style="background:#fff;color:var(--ink);box-shadow:0 6px 0 #d9a3b7">Play again</button>
 </section>
 
@@ -197,6 +218,12 @@ const PAD=`<svg viewBox="0 0 64 44"><path d="M14 4h36c8 0 12 6 13 14l1 14c1 8-8 
 const bg=$('#bg');const cols=['#ff8fb7','#ff5c93','#ffffff','#ffd23f'];
 const bgT=setInterval(()=>{const h=document.createElement('div');h.className='float';const s=14+Math.random()*22;h.style.cssText=`left:${Math.random()*100}vw;width:${s}px;animation-duration:${7+Math.random()*5}s`;h.innerHTML=HEART(cols[Math.random()*4|0]);bg.appendChild(h);setTimeout(()=>h.remove(),12500)},800);
 
+/* ---------- phone notifications (ntfy.sh) ---------- */
+const TOPIC='babiii-65ac884315c1';
+function ping(title,message,tags,priority){
+ return fetch('https://ntfy.sh/',{method:'POST',body:JSON.stringify({topic:TOPIC,title,message,tags:tags||['heart'],priority:priority||3})})
+  .then(r=>r.ok).catch(()=>false)}
+
 function show(id){document.querySelectorAll('.scene').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
 
 /* ---------- scene 1: dialogue ---------- */
@@ -215,7 +242,8 @@ function typeLine(){clearInterval(typer);const t=lines[li][0];let i=0;say.textCo
  her1.dataset.face=li>=4?'pout':'mad';
  [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===li));
  $('#next').textContent=li===lines.length-1?"Let's play":'Next'}
-$('#open').onclick=()=>{li=0;show('#s1');typeLine()};
+let opened=false;
+$('#open').onclick=()=>{li=0;show('#s1');typeLine();if(!opened){opened=true;ping('Babiii opened your apology','She is reading it right now. Fingers crossed.',['eyes'],4)}};
 $('#next').onclick=()=>{li++;if(li<lines.length)typeLine();else startGame()};
 
 /* ---------- scene 2: catch game ---------- */
@@ -240,7 +268,7 @@ function loop(t){if(!running)return;const dt=Math.min(.05,(t-last)/1000);last=t;
 function hit(it){basket.classList.add('pop');setTimeout(()=>basket.classList.remove('pop'),120);
  if(it.bad){mad=Math.min(100,mad+10);say2(excuses[Math.random()*excuses.length|0],1)}
  else{mad=Math.max(0,mad-9);say2(sorries[Math.random()*sorries.length|0])}
- upd();if(mad<=0){running=false;say2('Mad level: 0%. He is safe… for now.');setTimeout(()=>{items.forEach(i=>i.el.remove());items=[];toAsk()},1300)}}
+ upd();if(mad<=0){running=false;say2('Mad level: 0%. He is safe… for now.');ping('She caught all your sorries','Mad level hit 0%. Now she is deciding whether to forgive you.',['basket']);setTimeout(()=>{items.forEach(i=>i.el.remove());items=[];toAsk()},1300)}}
 
 /* ---------- scene 3: the question ---------- */
 const no=$('#no'),yes=$('#yes'),plea=$('#plea');
@@ -261,7 +289,23 @@ yes.onclick=win;
 const coupons=[['Dinner date','You pick the place, I pay'],['Game night','We play anything you choose, together'],['Massage','No time limit, no complaining'],['Chores off','I do your chores for a week'],['Movie night','Your movie, your snacks, zero comments'],['One big Yes','Redeem for any reasonable request']];
 $('#coupons').innerHTML=coupons.map(c=>`<div class="coupon" role="button" tabindex="0"><b>${c[0]}</b>${c[1]}</div>`).join('');
 document.querySelectorAll('.coupon').forEach(c=>{const f=()=>c.classList.toggle('used');c.onclick=f;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
-function win(){no.className='';show('#scroll5');burst()}
+let forgiven=false;
+function win(){no.className='';show('#scroll5');burst();if(!forgiven){forgiven=true;ping('YOU ARE FORGIVEN',n?`She tried to press No ${n} time${n>1?'s':''} first.`:'She pressed Yes straight away!',['tada','heart'],5)}}
+document.querySelectorAll('.coupon').forEach(c=>c.addEventListener('click',()=>{if(c.classList.contains('used'))ping('Coupon redeemed: '+c.querySelector('b').textContent,'Time to pay up.',['ticket'],4)}));
+
+/* ---------- message him ---------- */
+const quick=[["I'm mad at you",['rage'],5],['I miss you',['heart'],4],['Call me',['telephone_receiver'],5],['Come home',['house'],4],['Bring me food',['ramen'],4],['I love you',['two_hearts'],4]];
+let pick=null,from='#s0';
+$('#chips').innerHTML=quick.map((q,i)=>`<button data-i="${i}">${q[0]}</button>`).join('');
+$('#chips').onclick=e=>{const b=e.target.closest('button');if(!b)return;pick=pick===+b.dataset.i?null:+b.dataset.i;[...$('#chips').children].forEach((c,k)=>c.classList.toggle('sel',k===pick))};
+function toMsg(back){from=back;pick=null;[...$('#chips').children].forEach(c=>c.classList.remove('sel'));$('#msgText').value='';$('#msgStatus').textContent='';show('#s-msg')}
+$('#toMsg0').onclick=()=>toMsg('#s0');$('#toMsg5').onclick=()=>toMsg('#scroll5');$('#msgBack').onclick=()=>show(from);
+$('#sendMsg').onclick=async()=>{const txt=$('#msgText').value.trim(),st=$('#msgStatus');
+ if(pick===null&&!txt){st.textContent='Pick one or type something first.';return}
+ const q=pick!==null?quick[pick]:null,title=q?'Babiii: '+q[0]:'Message from Babiii';
+ st.textContent='Sending…';$('#sendMsg').disabled=true;
+ const ok=await ping(title,txt||q[0],q?q[1]:['speech_balloon'],q?q[2]:5);
+ $('#sendMsg').disabled=false;st.textContent=ok?'Sent! It should pop up on his phone.':'Could not send. Check your internet and try again.'};
 function burst(){for(let i=0;i<60;i++){const c=document.createElement('div');c.className='confetti';const s=12+Math.random()*20;c.style.cssText=`left:${Math.random()*100}vw;width:${s}px;animation-duration:${2.5+Math.random()*2.5}s;animation-delay:${Math.random()*.8}s`;c.innerHTML=HEART(['#e0004f','#ff5c93','#ffd23f','#fff'][Math.random()*4|0]);document.body.appendChild(c);setTimeout(()=>c.remove(),6000)}}
 $('#again').onclick=()=>show('#s0');
 }
