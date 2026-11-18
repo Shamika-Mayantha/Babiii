@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>For Babiii</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: tender, silly, a little dramatic — a husband on his knees
+   IDEA: a pocket handheld game console made of candy, apology inside
+   PICTURE: two hand-drawn characters, him kneeling, her pouting, then hugging
+   COLOUR and TYPE: strawberry pink ground, deep raspberry ink, sunny yellow accent; Fredoka
+   LAYOUT: one centred stage per scene, characters large, dialogue bubble on top, button below */
+:root{color-scheme:light;--bg:#ffd6e5;--bg2:#ffb8d1;--ink:#4a0f2a;--rasp:#c2185b;--rasp-d:#8e0f42;--sun:#ffd23f;--card:#fff}
+*{box-sizing:border-box;min-width:0;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font:17px/1.45 Fredoka,'Trebuchet MS',system-ui,sans-serif;color:var(--ink);background:radial-gradient(120% 90% at 50% 0%,#ffe9f1,var(--bg) 45%,var(--bg2));-webkit-tap-highlight-color:transparent;user-select:none}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.float{position:absolute;bottom:-40px;animation:up linear forwards;opacity:.55}
+@keyframes up{to{transform:translateY(-115vh) rotate(25deg);opacity:0}}
+.scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center}
+.scene.on{display:flex;animation:fade .6s ease}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+h1{font-size:clamp(32px,8vw,52px);line-height:1.05;color:var(--rasp);font-weight:700;text-wrap:balance}
+.sub{font-size:17px;max-width:420px}
+button{font:600 18px Fredoka,sans-serif;border:0;border-radius:999px;padding:14px 30px;min-height:48px;background:var(--rasp);color:#fff;box-shadow:0 6px 0 var(--rasp-d);cursor:pointer;transition:transform .15s}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 var(--rasp-d)}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.envelope{width:min(220px,55vw);animation:wob 2.2s ease-in-out infinite;filter:drop-shadow(0 12px 18px rgba(142,15,66,.25))}
+@keyframes wob{50%{transform:rotate(-4deg) scale(1.04)}}
+.stage{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,4vw,40px);width:100%;max-width:560px}
+.char{width:min(170px,40vw);position:relative}
+.char svg{width:100%;height:auto;display:block;overflow:visible}
+.char .f{display:none}
+.char[data-face=sad] .f-sad,.char[data-face=happy] .f-happy,.char[data-face=mad] .f-mad,.char[data-face=pout] .f-pout{display:inline}
+.him{animation:beg 1.4s ease-in-out infinite}
+@keyframes beg{50%{transform:translateY(6px) rotate(-2deg)}}
+.her.huff{animation:huff .5s ease}
+@keyframes huff{30%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+.tear{animation:drip 1.6s ease-in infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(22px);opacity:0}}
+.bubble{background:var(--card);border-radius:22px;padding:16px 20px;box-shadow:0 6px 20px rgba(194,24,91,.18);max-width:440px;width:100%;min-height:84px;font-size:18px;position:relative;text-align:left}
+.bubble::after{content:"";position:absolute;bottom:-12px;left:22%;border:12px solid transparent;border-top-color:var(--card);border-bottom:0}
+.her-say{position:absolute;top:-26px;right:-6px;background:var(--card);border-radius:14px;padding:4px 10px;font-size:14px;font-weight:600;color:var(--rasp);box-shadow:0 3px 10px rgba(0,0,0,.08);white-space:nowrap;transition:opacity .3s}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.6}.dots i.on{background:var(--rasp);opacity:1}
+/* game */
+#s-game{justify-content:flex-start;padding:16px 0 0}
+.hud{width:min(480px,92vw);display:flex;flex-direction:column;gap:6px;z-index:2}
+.hud b{font-size:15px;display:flex;justify-content:space-between}
+.meter{height:20px;border-radius:999px;background:#fff;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
+.meter i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff7a59,#e0004f);border-radius:999px;transition:width .3s}
+.tip{font-size:14px;opacity:.85}
+#arena{position:relative;flex:1;width:100%;max-width:520px;touch-action:none;overflow:hidden;margin-top:6px;border-radius:24px 24px 0 0;background:linear-gradient(#ffffff55,#ffffff22)}
+.item{position:absolute;width:44px;height:44px;transform:translate(-50%,-50%);pointer-events:none}
+.item svg{width:100%;height:100%}
+#basket{position:absolute;top:88%;left:50%;width:104px;transform:translate(-50%,-50%);pointer-events:none;transition:transform .1s}
+#basket.pop{transform:translate(-50%,-50%) scale(1.15)}
+#toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--rasp);font-weight:600;border-radius:999px;padding:8px 16px;font-size:15px;white-space:nowrap;opacity:0;transition:opacity .25s;box-shadow:0 4px 12px rgba(0,0,0,.1);max-width:92%;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1}#toast.bad{color:#fff;background:#4a0f2a}
+/* ask */
+.btns{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:120px}
+#yes{background:#e0004f;transition:transform .25s}
+#no{background:#fff;color:var(--ink);box-shadow:0 6px 0 #d9a3b7;transition:left .25s,top .25s}
+#no.run{position:fixed}
+/* forgiven */
+.hug .him{animation:none;transform:translateX(18px)}
+.hug .her{transform:translateX(-18px)}
+.bigheart{position:absolute;left:50%;top:-10px;width:64px;transform:translateX(-50%);animation:beat .9s ease-in-out infinite}
+@keyframes beat{50%{transform:translateX(-50%) scale(1.2)}}
+.coupons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(480px,94vw)}
+.coupon{background:var(--card);border:2px dashed var(--rasp);border-radius:16px;padding:12px;font-size:15px;line-height:1.3;cursor:pointer;position:relative;text-align:left;min-height:64px}
+.coupon b{display:block;color:var(--rasp);font-size:16px}
+.coupon.used::after{content:"Redeemed";position:absolute;right:8px;top:50%;transform:translateY(-50%) rotate(-12deg);border:3px solid #e0004f;color:#e0004f;font-weight:700;padding:2px 8px;border-radius:8px;background:#fffd}
+.sign{font-size:16px;opacity:.9}
+.confetti{position:fixed;top:-30px;pointer-events:none;animation:fall linear forwards;z-index:9}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+#scroll5{overflow-y:auto;justify-content:flex-start;padding-top:40px;padding-bottom:40px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+@media(max-height:640px){.char{width:min(130px,34vw)}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<!-- 0: envelope -->
+<section class="scene on" id="s0">
+  <svg class="envelope" viewBox="0 0 220 160" aria-hidden="true">
+    <rect x="10" y="30" width="200" height="120" rx="16" fill="#fff"/>
+    <path d="M10 46 L110 110 L210 46" fill="none" stroke="#f3a5c2" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M110 92c-14-14-34-4-26 12 6 10 26 22 26 22s20-12 26-22c8-16-12-26-26-12z" fill="#e0004f"/>
+    <circle cx="196" cy="34" r="18" fill="#ffd23f"/><text x="196" y="41" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="20" fill="#4a0f2a">1</text>
+  </svg>
+  <h1>Babiii, you have one new message</h1>
+  <p class="sub">From a very sorry husband. Sound on is not required. Forgiveness is optional (but recommended).</p>
+  <button id="open">Open it</button>
+</section>
+
+<!-- 1: the apology -->
+<section class="scene" id="s1">
+  <div class="bubble" id="say"></div>
+  <div class="stage">
+    <div class="char him" id="him1" data-face="sad"></div>
+    <div class="char her" id="her1" data-face="mad"><span class="her-say" id="herSay">hmph.</span></div>
+  </div>
+  <div class="dots" id="dots"></div>
+  <button id="next">Next</button>
+</section>
+
+<!-- 2: game -->
+<section class="scene" id="s-game">
+  <div class="hud">
+    <b><span>Babiii's mad level</span><span id="madNum">100%</span></b>
+    <div class="meter"><i id="meterFill"></i></div>
+    <span class="tip">Drag to catch his sorries. Dodge the excuses.</span>
+  </div>
+  <div id="arena">
+    <div id="toast"></div>
+    <svg id="basket" viewBox="0 0 104 70" aria-hidden="true">
+      <path d="M6 22h92l-10 42H16z" fill="#c2185b"/><path d="M6 22h92" stroke="#8e0f42" stroke-width="6" stroke-linecap="round"/>
+      <path d="M22 34h60M26 46h52" stroke="#ff8fb7" stroke-width="3" stroke-linecap="round"/>
+      <text x="52" y="18" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="13" fill="#4a0f2a">sorry jar</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 3: ask -->
+<section class="scene" id="s3">
+  <h1>So… do you forgive me?</h1>
+  <div class="stage"><div class="char her" id="her3" data-face="pout"></div></div>
+  <p class="sub" id="plea">Choose carefully.</p>
+  <div class="btns"><button id="yes">Yes</button><button id="no">No</button></div>
+</section>
+
+<!-- 4: forgiven -->
+<section class="scene" id="scroll5">
+  <h1>Forgiven!</h1>
+  <div class="stage hug" style="position:relative">
+    <svg class="bigheart" viewBox="0 0 64 56"><path d="M32 54S2 36 2 17C2 6 10 1 18 1c6 0 11 3 14 9 3-6 8-9 14-9 8 0 16 5 16 16 0 19-30 37-30 37z" fill="#e0004f"/></svg>
+    <div class="char him" id="him5" data-face="happy"></div>
+    <div class="char her" id="her5" data-face="happy"></div>
+  </div>
+  <p class="sub">Thank you for the gift, babiii. Not the game, the thought behind it. Here are your apology coupons. Tap one to redeem it, then show me.</p>
+  <div class="coupons" id="coupons"></div>
+  <p class="sign">I love you more than any game on any platform. ♥</p>
+  <button id="again" style="background:#fff;color:var(--ink);box-shadow:0 6px 0 #d9a3b7">Play again</button>
+</section>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+
+/* ---------- characters ---------- */
+const HIM=`<svg viewBox="0 0 140 180">
+<ellipse cx="70" cy="172" rx="44" ry="7" fill="#8e0f42" opacity=".15"/>
+<rect x="38" y="138" width="24" height="30" rx="10" fill="#2b2f4a"/><rect x="78" y="138" width="24" height="30" rx="10" fill="#2b2f4a"/>
+<rect x="30" y="92" width="80" height="58" rx="26" fill="#4f7cff"/>
+<path d="M30 112q-14 10-6 26M110 112q14 10 6 26" stroke="#4f7cff" stroke-width="13" stroke-linecap="round" fill="none"/>
+<path d="M58 96l12 14 12-14" fill="#3a63d8"/>
+<circle cx="70" cy="58" r="36" fill="#e9b48c"/>
+<path d="M33 54q2-34 37-34t37 34q-8-16-20-18-6 8-24 8t-22-8q-6 6-8 18z" fill="#1d1410"/>
+<circle cx="50" cy="72" r="6" fill="#ff8fa3" opacity=".55"/><circle cx="90" cy="72" r="6" fill="#ff8fa3" opacity=".55"/>
+<g class="f f-sad"><path d="M46 50l12-4M82 46l12 4" stroke="#1d1410" stroke-width="3" stroke-linecap="round"/>
+<circle cx="55" cy="60" r="4.5" fill="#1d1410"/><circle cx="85" cy="60" r="4.5" fill="#1d1410"/>
+<path d="M60 80q10-8 20 0" stroke="#1d1410" stroke-width="3" fill="none" stroke-linecap="round"/>
+<ellipse class="tear" cx="52" cy="68" rx="3" ry="4.5" fill="#6ec3ff"/></g>
+<g class="f f-happy"><path d="M48 60q7-8 14 0M78 60q7-8 14 0" stroke="#1d1410" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M58 74q12 14 24 0z" fill="#8e0f42"/></g></svg>`;
+const HER=`<svg viewBox="0 0 140 180">
+<ellipse cx="70" cy="172" rx="44" ry="7" fill="#8e0f42" opacity=".15"/>
+<path d="M28 60q-6 60 10 86h64q16-26 10-86z" fill="#3b1f14"/>
+<rect x="50" y="140" width="14" height="28" rx="7" fill="#e9b48c"/><rect x="76" y="140" width="14" height="28" rx="7" fill="#e9b48c"/>
+<path d="M44 96h52l14 52H30z" fill="#ff5c93"/>
+<path d="M44 104q-10 14 0 30M96 104q10 14 0 30" stroke="#f0bf98" stroke-width="10" stroke-linecap="round" fill="none"/>
+<circle cx="70" cy="60" r="34" fill="#f0bf98"/>
+<path d="M36 58q0-36 34-36t34 36q-12-6-20-20-12 14-48 20z" fill="#3b1f14"/>
+<path d="M92 26l14-8 2 14zM92 26l-8-12 14 2z" fill="#ffd23f"/><circle cx="94" cy="24" r="4" fill="#e0a800"/>
+<g class="f f-mad"><path d="M48 52l12 5M92 52l-12 5" stroke="#3b1f14" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="56" cy="64" r="4.5" fill="#3b1f14"/><circle cx="84" cy="64" r="4.5" fill="#3b1f14"/>
+<path d="M62 82q8-5 16 0" stroke="#3b1f14" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M104 40l6 6M110 40l-6 6M100 46l4 4M106 34l2 6" stroke="#e0004f" stroke-width="3" stroke-linecap="round"/>
+<circle cx="50" cy="74" r="6" fill="#ff5c7a" opacity=".7"/><circle cx="90" cy="74" r="6" fill="#ff5c7a" opacity=".7"/></g>
+<g class="f f-pout"><path d="M50 54h10M80 54h10" stroke="#3b1f14" stroke-width="3" stroke-linecap="round"/>
+<circle cx="58" cy="64" r="4.5" fill="#3b1f14"/><circle cx="86" cy="64" r="4.5" fill="#3b1f14"/>
+<circle cx="70" cy="81" r="4" fill="#8e0f42"/>
+<circle cx="50" cy="74" r="6" fill="#ff8fa3" opacity=".6"/><circle cx="90" cy="74" r="6" fill="#ff8fa3" opacity=".6"/></g>
+<g class="f f-happy"><path d="M48 64q7-8 14 0M78 64q7-8 14 0" stroke="#3b1f14" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M60 76q10 12 20 0z" fill="#8e0f42"/>
+<circle cx="50" cy="74" r="7" fill="#ff8fa3" opacity=".7"/><circle cx="90" cy="74" r="7" fill="#ff8fa3" opacity=".7"/></g></svg>`;
+document.querySelectorAll('.him').forEach(e=>e.insertAdjacentHTML('afterbegin',HIM));
+document.querySelectorAll('.her').forEach(e=>e.insertAdjacentHTML('afterbegin',HER));
+
+const HEART=c=>`<svg viewBox="0 0 64 56"><path d="M32 54S2 36 2 17C2 6 10 1 18 1c6 0 11 3 14 9 3-6 8-9 14-9 8 0 16 5 16 16 0 19-30 37-30 37z" fill="${c}"/><ellipse cx="18" cy="14" rx="6" ry="4" fill="#fff" opacity=".5"/></svg>`;
+const PAD=`<svg viewBox="0 0 64 44"><path d="M14 4h36c8 0 12 6 13 14l1 14c1 8-8 12-14 4l-4-6H18l-4 6C8 44-1 40 0 32l1-14C2 10 6 4 14 4z" fill="#2b2f4a"/><path d="M14 16v10M9 21h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="46" cy="17" r="3" fill="#ff5c93"/><circle cx="52" cy="23" r="3" fill="#ffd23f"/></svg>`;
+
+/* ---------- background hearts ---------- */
+const bg=$('#bg');const cols=['#ff8fb7','#ff5c93','#ffffff','#ffd23f'];
+const bgT=setInterval(()=>{const h=document.createElement('div');h.className='float';const s=14+Math.random()*22;h.style.cssText=`left:${Math.random()*100}vw;width:${s}px;animation-duration:${7+Math.random()*5}s`;h.innerHTML=HEART(cols[Math.random()*4|0]);bg.appendChild(h);setTimeout(()=>h.remove(),12500)},800);
+
+function show(id){document.querySelectorAll('.scene').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
+
+/* ---------- scene 1: dialogue ---------- */
+const lines=[
+ ["Hi babiii… it's me. The idiot.","hmph."],
+ ["You bought me GTA 6. You remembered, you planned it, you surprised me.","…go on."],
+ ["And I… cancelled it and got a refund. Because it was on PS and I wanted it on PC.","really??"],
+ ["I should have said thank you first and talked to you after. Instead I made your gift feel like it didn't matter.","yeah."],
+ ["It mattered. YOU matter way more than any game, on any platform.","…"],
+ ["So I made you a little game instead. Catch my sorries and decide my fate.","fine."]
+];
+let li=0,typer;const say=$('#say'),herSay=$('#herSay'),dots=$('#dots'),her1=$('#her1');
+dots.innerHTML=lines.map(()=>'<i></i>').join('');
+function typeLine(){clearInterval(typer);const t=lines[li][0];let i=0;say.textContent='';typer=setInterval(()=>{say.textContent=t.slice(0,++i);if(i>=t.length)clearInterval(typer)},26);
+ herSay.textContent=lines[li][1];her1.classList.remove('huff');void her1.offsetWidth;her1.classList.add('huff');
+ her1.dataset.face=li>=4?'pout':'mad';
+ [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===li));
+ $('#next').textContent=li===lines.length-1?"Let's play":'Next'}
+$('#open').onclick=()=>{li=0;show('#s1');typeLine()};
+$('#next').onclick=()=>{li++;if(li<lines.length)typeLine();else startGame()};
+
+/* ---------- scene 2: catch game ---------- */
+const arena=$('#arena'),basket=$('#basket'),fill=$('#meterFill'),madNum=$('#madNum'),toast=$('#toast');
+const sorries=['Sorry babiii','I love you','You are the best gift-giver','My bad, fr','I am the problem','Forgive me pls','Thank you for thinking of me','You > every console'];
+const excuses=["Excuse: 'but PC has better graphics'","Excuse: 'but mods though'","Excuse: 'I can explain…'","Excuse: 'technically I was being efficient'","Excuse: 'it's not a big deal'"];
+const heartCols=['#e0004f','#ff5c93','#ff2e63','#ff7aa8'];
+let mad,items=[],running=false,bx=.5,last=0,spawnT=0,toastT;
+function setB(x){const r=arena.getBoundingClientRect();bx=Math.min(.92,Math.max(.08,(x-r.left)/r.width));basket.style.left=bx*100+'%'}
+arena.addEventListener('pointermove',e=>setB(e.clientX));
+arena.addEventListener('pointerdown',e=>setB(e.clientX));
+document.addEventListener('keydown',e=>{if(!running)return;if(e.key==='ArrowLeft')bx=Math.max(.08,bx-.06);if(e.key==='ArrowRight')bx=Math.min(.92,bx+.06);basket.style.left=bx*100+'%'});
+function upd(){fill.style.width=mad+'%';madNum.textContent=Math.round(mad)+'%'}
+function say2(t,bad){toast.textContent=t;toast.className='show'+(bad?' bad':'');clearTimeout(toastT);toastT=setTimeout(()=>toast.className='',1100)}
+function startGame(){show('#s-game');mad=100;upd();items.forEach(i=>i.el.remove());items=[];bx=.5;basket.style.left='50%';running=true;last=performance.now();spawnT=.3;requestAnimationFrame(loop)}
+function spawn(){const bad=Math.random()<.25;const el=document.createElement('div');el.className='item';el.innerHTML=bad?PAD:HEART(heartCols[Math.random()*4|0]);arena.appendChild(el);items.push({el,x:.08+Math.random()*.84,y:-.05,v:.2+Math.random()*.12+(100-mad)/900,bad})}
+function loop(t){if(!running)return;const dt=Math.min(.05,(t-last)/1000);last=t;spawnT-=dt;if(spawnT<=0){spawn();spawnT=.5+Math.random()*.4}
+ for(let i=items.length-1;i>=0;i--){const it=items[i];it.y+=it.v*dt;it.el.style.left=it.x*100+'%';it.el.style.top=it.y*100+'%';
+  if(it.y>.83&&it.y<.94&&Math.abs(it.x-bx)<.12){hit(it);it.el.remove();items.splice(i,1);continue}
+  if(it.y>1.08){it.el.remove();items.splice(i,1)}}
+ if(running)requestAnimationFrame(loop)}
+function hit(it){basket.classList.add('pop');setTimeout(()=>basket.classList.remove('pop'),120);
+ if(it.bad){mad=Math.min(100,mad+10);say2(excuses[Math.random()*excuses.length|0],1)}
+ else{mad=Math.max(0,mad-9);say2(sorries[Math.random()*sorries.length|0])}
+ upd();if(mad<=0){running=false;say2('Mad level: 0%. He is safe… for now.');setTimeout(()=>{items.forEach(i=>i.el.remove());items=[];toAsk()},1300)}}
+
+/* ---------- scene 3: the question ---------- */
+const no=$('#no'),yes=$('#yes'),plea=$('#plea');
+const noTexts=['No','Are you sure?','Babiii pls','I will do the dishes for a week','What if I add a foot massage','Look at my face','You are clicking the wrong one','Okay fine, Yes'];
+const pleas=['Choose carefully.','The No button seems scared of you.','He is on his knees right now.','The Yes button is getting very big.','Resistance is futile.','Just a little Yes?','Pretty please with a cherry on top.','Even the No button gave up.'];
+let n=0;
+function toAsk(){show('#s3');n=0;no.className='';no.style.left=no.style.top='';no.textContent='No';yes.style.transform='';plea.textContent=pleas[0]}
+function dodge(e){if(n>=noTexts.length-1){return}e.preventDefault();n++;no.textContent=noTexts[n];plea.textContent=pleas[n];
+ yes.style.transform=`scale(${1+n*.22})`;
+ no.classList.add('run');const w=no.offsetWidth,h=no.offsetHeight;
+ no.style.left=Math.max(8,Math.random()*(innerWidth-w-16))+'px';no.style.top=Math.max(8,Math.random()*(innerHeight-h-16))+'px'}
+no.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')dodge(e)});
+no.addEventListener('pointerdown',dodge);
+no.addEventListener('click',()=>{if(n>=noTexts.length-1)win()});
+yes.onclick=win;
+
+/* ---------- scene 4: forgiven ---------- */
+const coupons=[['Dinner date','You pick the place, I pay'],['Game night','We play anything you choose, together'],['Massage','No time limit, no complaining'],['Chores off','I do your chores for a week'],['Movie night','Your movie, your snacks, zero comments'],['One big Yes','Redeem for any reasonable request']];
+$('#coupons').innerHTML=coupons.map(c=>`<div class="coupon" role="button" tabindex="0"><b>${c[0]}</b>${c[1]}</div>`).join('');
+document.querySelectorAll('.coupon').forEach(c=>{const f=()=>c.classList.toggle('used');c.onclick=f;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
+function win(){no.className='';show('#scroll5');burst()}
+function burst(){for(let i=0;i<60;i++){const c=document.createElement('div');c.className='confetti';const s=12+Math.random()*20;c.style.cssText=`left:${Math.random()*100}vw;width:${s}px;animation-duration:${2.5+Math.random()*2.5}s;animation-delay:${Math.random()*.8}s`;c.innerHTML=HEART(['#e0004f','#ff5c93','#ffd23f','#fff'][Math.random()*4|0]);document.body.appendChild(c);setTimeout(()=>c.remove(),6000)}}
+$('#again').onclick=()=>show('#s0');
+}
+</script>
+</body>
+</html>
